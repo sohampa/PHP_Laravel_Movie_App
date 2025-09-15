@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  DOCKERHUB_REPO: your-dockerhub-username/php-app # update with your Docker Hub username/repo
+  DOCKERHUB_REPO: sohampa/php-backend-laravel
 
 jobs:
   build-and-push:
