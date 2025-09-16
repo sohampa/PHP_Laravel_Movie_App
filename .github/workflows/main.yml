@@ -14,6 +14,7 @@ env:
   ECS_CLUSTER: soham-php-laravel-app
   ECS_SERVICE: soham-php-laravel-backend-service
   ECS_TASK_FAMILY: soham-php-laravel-backend
+  AWS_ROLE_TO_ASSUME: arn:aws:iam::543816070942:role/Soham-OIDC-Role
 
 jobs:
   build-and-push:
@@ -26,7 +27,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
       # Log in to Docker Hub
