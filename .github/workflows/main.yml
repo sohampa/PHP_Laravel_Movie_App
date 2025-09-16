@@ -10,6 +10,10 @@ permissions:
 
 env:
   DOCKERHUB_REPO: sohampa/php-backend-laravel
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: soham-php-laravel-app
+  ECS_SERVICE: soham-php-laravel-backend-service
+  ECS_TASK_FAMILY: soham-php-laravel-backend
 
 jobs:
   build-and-push:
@@ -19,6 +23,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
       # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -27,16 +37,43 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push image
-      - name: Build and Push Docker Image
+      - name: Build & Push Backend Image
         run: |
-          IMAGE_TAG=${{ github.sha }}
-          echo "Building image: ${{ env.DOCKERHUB_REPO }}:$IMAGE_TAG"
+          IMAGE=${{ env.DOCKERHUB_REPO }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "NEW_IMAGE=$IMAGE" >> $GITHUB_ENV
 
-          docker build -t ${{ env.DOCKERHUB_REPO }}:$IMAGE_TAG .
-          docker push ${{ env.DOCKERHUB_REPO }}:$IMAGE_TAG
-
-      # (Optional) Tag as "latest"
-      - name: Tag as latest
+      - name: Update ECS Task Definition
         run: |
-          docker tag ${{ env.DOCKERHUB_REPO }}:${{ github.sha }} ${{ env.DOCKERHUB_REPO }}:latest
-          docker push ${{ env.DOCKERHUB_REPO }}:latest
+          # Fetch current task definition
+          aws ecs describe-task-definition \
+            --task-definition $ECS_TASK_FAMILY \
+            --query taskDefinition > task-def.json
+
+          # Remove read-only fields
+          cat task-def.json | jq 'del(
+            .taskDefinitionArn,
+            .revision,
+            .status,
+            .requiresAttributes,
+            .compatibilities,
+            .registeredAt,
+            .registeredBy
+          )' > new-task-def.json
+
+          # Update image
+          jq --arg IMAGE "$NEW_IMAGE" \
+            '.containerDefinitions[0].image = $IMAGE' new-task-def.json \
+            > final-task-def.json
+
+          # Register new revision
+          aws ecs register-task-definition \
+            --cli-input-json file://final-task-def.json
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment
