@@ -28,7 +28,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::543816070942:role/php-backend-laravel-role
+          role-to-assume: arn:aws:iam::543816070942:role/Soham-OIDC-Role
           aws-region: us-east-1
 
       # Log in to Docker Hub
