@@ -41,7 +41,7 @@ jobs:
       # Build and push image
       - name: Build & Push Backend Image
         run: |
-          IMAGE=${{ env.DOCKERHUB_BACKEND_REPO }}:${{ github.sha }}
+          IMAGE=${{ env.DOCKERHUB_REPO }}:${{ github.sha }}
           docker build -t $IMAGE .
           docker push $IMAGE
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
