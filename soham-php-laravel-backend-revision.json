@@ -37,7 +37,6 @@
         }
     ],
     "cpu": "1024",
-    "enableFaultInjection": false,
     "executionRoleArn": "arn:aws:iam::543816070942:role/ecsTaskExecutionRole",
     "family": "soham-php-laravel-backend",
     "memory": "3072",
