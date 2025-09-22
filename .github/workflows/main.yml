@@ -41,18 +41,19 @@ jobs:
       # Build and push image
       - name: Build & Push Backend Image
         run: |
-          IMAGE=${{ env.DOCKERHUB_REPO }}:${{ github.sha }}
+          IMAGE=${{ env.DOCKERHUB_BACKEND_REPO }}:${{ github.sha }}
           docker build -t $IMAGE .
           docker push $IMAGE
-          echo "NEW_IMAGE=$IMAGE" >> $GITHUB_ENV
-
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+      
       - name: Render new ECS task definition
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: soham-php-laravel-backend-revision.json   # keep a base task-def file in repo
-          container-name: php-laravel-backend    # must match your container name in ECS
+          task-definition: soham-php-laravel-backend-revision.json   # base JSON stored in repo
+          container-name: php-laravel-backend
           image: ${{ env.IMAGE }}
+
 
       - name: Deploy to ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
