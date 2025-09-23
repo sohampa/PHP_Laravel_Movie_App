@@ -24,6 +24,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::543816070942:role/Soham-OIDC-Role
+          aws-region: us-east-1
+
       # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
