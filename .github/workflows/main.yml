@@ -10,6 +10,10 @@ permissions:
 
 env:
   DOCKERHUB_REPO: sohampa/php-backend-laravel
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: soham-php-laravel-app
+  ECS_SERVICE: soham-php-laravel-backend-service
+  ECS_TASK_FAMILY: soham-php-laravel-backend
 
 jobs:
   build-and-push:
