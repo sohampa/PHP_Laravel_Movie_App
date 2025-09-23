@@ -40,3 +40,37 @@ jobs:
         run: |
           docker tag ${{ env.DOCKERHUB_REPO }}:${{ github.sha }} ${{ env.DOCKERHUB_REPO }}:latest
           docker push ${{ env.DOCKERHUB_REPO }}:latest
+
+      - name: Update ECS Task Definition
+        run: |
+          # Fetch current task definition
+          aws ecs describe-task-definition \
+            --task-definition $ECS_TASK_FAMILY \
+            --query taskDefinition > task-def.json
+
+          # Remove read-only fields
+          cat task-def.json | jq 'del(
+            .taskDefinitionArn,
+            .revision,
+            .status,
+            .requiresAttributes,
+            .compatibilities,
+            .registeredAt,
+            .registeredBy
+          )' > new-task-def.json
+
+          # Update image
+          jq --arg IMAGE "$NEW_IMAGE" \
+            '.containerDefinitions[0].image = $IMAGE' new-task-def.json \
+            > final-task-def.json
+
+          # Register new revision
+          aws ecs register-task-definition \
+            --cli-input-json file://final-task-def.json
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment
