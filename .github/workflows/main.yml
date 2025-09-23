@@ -15,6 +15,7 @@ env:
   ECS_CLUSTER: soham-php-laravel-app
   ECS_SERVICE: soham-php-laravel-backend-service
   ECS_TASK_FAMILY: soham-php-laravel-backend
+  NEW_IMAGE: sohampa/php-backend-laravel:${{ github.sha }}
 
 jobs:
   build-and-push:
